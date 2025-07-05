@@ -9,16 +9,18 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      id-token: write  
-      contents: read   
+      id-token: write
+      contents: read
 
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
+
         uses: google-github-actions/auth@v2
         with:
+          token_format: 'id_token'
           workload_identity_provider: 'projects/1021320164820/locations/global/workloadIdentityPools/selfos-pool/providers/github-provider'
           service_account: 'github-actions-sa@selfos-test-id.iam.gserviceaccount.com'
 
@@ -32,13 +34,5 @@ jobs:
         run: gcloud config list project
 
       - name: Dump OIDC token
-        id: auth
-        uses: google-github-actions/auth@v2
-        with:
-          token_format: 'id_token'
-          workload_identity_provider: 'projects/1021320164820/locations/global/workloadIdentityPools/selfos-pool/providers/github-provider'
-          service_account: 'github-actions-sa@your-project-id.iam.gserviceaccount.com'
-
-      - name: Decode token
         run: |
           echo "${{ steps.auth.outputs.id_token }}" | cut -d '.' -f2 | base64 -d | jq .
