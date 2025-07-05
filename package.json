@@ -1,0 +1,35 @@
+{
+  "name": "selfos",
+  "version": "1.0.0",
+  "description": "AI-powered personal habits tracker and organizer.",
+  "main": "index.js",
+  "scripts": {
+    "build": "rimraf ./dist && tsc",
+    "start": "npm run build && node dist/index.js",
+    "dev": "nodemon src/index.ts",
+    "clean": "rimraf ./dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kemal-rov/selfOS.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/kemal-rov/selfOS/issues"
+  },
+  "homepage": "https://github.com/kemal-rov/selfOS#readme",
+  "devDependencies": {
+    "@types/node": "^24.0.10",
+    "nodemon": "^3.1.10",
+    "rimraf": "^6.0.1",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "dependencies": {
+    "@google-cloud/firestore": "^7.10.0",
+    "google-auth-library": "^9.10.0"
+  }
+}
