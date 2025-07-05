@@ -1,4 +1,4 @@
-# 🧠 SelfOS — ersonal AI Wellness Companion
+# 🧠 SelfOS — Personal AI Wellness Companion
 
 SelfOS is not just a habit tracker. It’s a private, lightweight, and smart system designed to help me stay on top of my nutrition, physical activity, mood, and health — with the help of AI and automation.
 
