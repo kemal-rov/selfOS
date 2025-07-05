@@ -17,12 +17,13 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Authenticate to Google Cloud
-
+        id: auth
         uses: google-github-actions/auth@v2
         with:
           token_format: 'id_token'
           workload_identity_provider: 'projects/1021320164820/locations/global/workloadIdentityPools/selfos-pool/providers/github-provider'
           service_account: 'github-actions-sa@selfos-test-id.iam.gserviceaccount.com'
+          id_token_audience: 'https://iam.googleapis.com/projects/1021320164820/locations/global/workloadIdentityPools/selfos-pool/providers/github-provider'
 
       - name: Setup gcloud CLI
         uses: google-github-actions/setup-gcloud@v1
