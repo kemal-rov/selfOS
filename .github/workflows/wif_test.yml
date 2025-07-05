@@ -1,0 +1,32 @@
+name: GCP Auth Test
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  auth-test:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write  
+      contents: read   
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: 'projects/1021320164820/locations/global/workloadIdentityPools/selfos-pool/providers/github-provider'
+          service_account: 'github-actions-sa@selfos-test-id.iam.gserviceaccount.com'
+
+      - name: Setup gcloud CLI
+        uses: google-github-actions/setup-gcloud@v1
+
+      - name: Verify active identity
+        run: gcloud auth list
+
+      - name: Show current project
+        run: gcloud config list project
