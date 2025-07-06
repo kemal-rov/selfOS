@@ -2,8 +2,13 @@ name: SelfOS Daily Summary
 
 on:
   schedule:
-    - cron: '0 21 * * *'  # Runs at 23:00 CET (21:00 UTC)
-  workflow_dispatch:      # Optional to allow manual triggering
+    - cron: '0 21 * * *'  # 23:00 CET
+  workflow_dispatch:
+    inputs:
+      save:
+        description: 'Save reflection to Firestore?'
+        required: false
+        default: 'true'
 
 jobs:
   run-daily-summary:
@@ -38,4 +43,9 @@ jobs:
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
 
       - name: Run daily summary
-        run: npm run summary -- --save
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.save }}" = "true" ]; then
+            npm run summary -- --save
+          else
+            npm run summary
+          fi
