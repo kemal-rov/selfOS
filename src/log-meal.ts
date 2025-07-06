@@ -1,5 +1,6 @@
 import { db } from './firestore';
-import { getMealMacrosFromGPT } from './openai';
+import { FieldValue, Timestamp } from '@google-cloud/firestore';
+import { getMealMacrosFromGPT, getDailySuggestion } from './openai';
 import { randomUUID } from 'crypto';
 import { parseArgs } from './utils/args';
 import { Meal } from './types';
@@ -24,11 +25,47 @@ if (!mealText) {
     const ref = db.collection('days').doc(targetDate);
 
     await ref.set(
-      { meals: [meal] },
+      {
+        meals: FieldValue.arrayUnion(meal),
+        updatedAt: Timestamp.now(),
+        createdAt: Timestamp.now()
+      },
       { merge: true }
     );
 
     console.log(`✅ Logged meal to ${targetDate}:`, meal);
+
+    // Fetch all meals + mood/weight
+    const updatedSnap = await ref.get();
+    const updatedData = updatedSnap.data();
+    const meals = updatedData?.meals || [];
+
+    const totals = meals.reduce(
+      (acc, m) => {
+        acc.kcal += m.kcal;
+        acc.protein += m.protein;
+        acc.carbs += m.carbs;
+        acc.fat += m.fat;
+        acc.fiber += m.fiber || 0;
+        return acc;
+      },
+      { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
+    );
+
+    const mood = updatedData?.mood;
+    const weight = updatedData?.weight;
+
+    const suggestion = await getDailySuggestion({
+      kcal: totals.kcal,
+      protein: totals.protein,
+      carbs: totals.carbs,
+      fat: totals.fat,
+      mood,
+      weight
+    });
+
+    console.log('\n💬 Daily Suggestion:\n' + suggestion);
+
   } catch (err) {
     console.error('❌ Error logging meal:', err);
   }
