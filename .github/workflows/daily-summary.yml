@@ -43,19 +43,31 @@ jobs:
           echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
 
       - name: Run daily summary
+        id: summary
         run: |
           if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.save }}" = "true" ]; then
-            npm run summary -- --save
+            npm run summary -- --save > summary_output.txt
           else
-            npm run summary
+            npm run summary > summary_output.txt
           fi
-      - name: Send Discord message
+
+      - name: Send Discord summary
         env:
-            DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
-            curl -X POST -H "Content-Type: application/json" \
-            -d "{\"content\": \"✅ SelfOS summary completed for today!\"}" \
+          echo "📤 Posting summary to Discord..."
+          MAX_LEN=1900
+          CONTENT=$(cat summary_output.txt)
+
+          # Truncate to safe size if needed
+          if [ ${#CONTENT} -gt $MAX_LEN ]; then
+            CONTENT="${CONTENT:0:$MAX_LEN}..."
+          fi
+
+          PAYLOAD=$(jq -n --arg content "$CONTENT" '{content: $content}')
+          curl -X POST -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
             "$DISCORD_WEBHOOK_URL"
 
       - name: Cleanup
-        run: rm -f .env
+        run: rm -f .env summary_output.txt
