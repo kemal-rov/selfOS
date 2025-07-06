@@ -7,7 +7,13 @@
     "build": "rimraf ./dist && tsc",
     "start": "npm run build && node dist/index.js",
     "dev": "nodemon src/index.ts",
-    "clean": "rimraf ./dist"
+    "clean": "rimraf ./dist",
+
+    "log:meal": "ts-node src/cli/log-meal.ts",
+    "log:mood": "ts-node src/cli/log-mood.ts",
+    "log:weight": "ts-node src/cli/log-weight.ts",
+    "view:day": "ts-node src/cli/view-day.ts",
+    "summary": "ts-node src/cli/daily-summary.ts"
   },
   "repository": {
     "type": "git",
