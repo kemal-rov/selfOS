@@ -1,9 +1,9 @@
-import { db } from './firestore';
+import { db } from '../core/firestore';
 import { FieldValue, Timestamp } from '@google-cloud/firestore';
-import { getMealMacrosFromGPT, getDailySuggestion } from './openai';
+import { getMealMacrosFromGPT, getDailySuggestion } from '../openai';
 import { randomUUID } from 'crypto';
-import { parseArgs } from './utils/args';
-import { Meal } from './types';
+import { parseArgs } from '../utils/args';
+import { Meal } from '../types';
 
 const { date: targetDate, input: mealText } = parseArgs(process.argv.slice(2));
 

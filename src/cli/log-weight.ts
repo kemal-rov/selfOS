@@ -1,6 +1,6 @@
-import { db } from './firestore';
+import { db } from '../core/firestore';
 import { Timestamp } from '@google-cloud/firestore';
-import { parseArgs } from './utils/args';
+import { parseArgs } from '../utils/args';
 
 const { date, input } = parseArgs(process.argv.slice(2));
 

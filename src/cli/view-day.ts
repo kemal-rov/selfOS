@@ -1,4 +1,4 @@
-import { db } from './firestore';
+import { db } from './core/firestore';
 import { parseArgs } from './utils/args';
 import { Meal } from './types';
 
