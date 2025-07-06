@@ -16,41 +16,39 @@ const ref = db.collection('days').doc(date);
   const data = snapshot.data();
   const meals = data?.meals || [];
 
-  const weight = data?.weight;
-  const mood = data?.mood;
-  const reflection = data?.reflection;
-  const updatedAt = data?.updatedAt?.toDate?.().toLocaleString() || null;
+  const total = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
+  const lines: string[] = [];
 
-  console.log(`🗓️  SelfOS log for ${date}\n`);
+  lines.push(`🗓️  SelfOS log for ${date}\n`);
 
-  if (weight) {
-    console.log(`⚖️  Weight: ${weight} kg`);
-  }
+  const simpleFields: Record<string, string> = {
+    weight: data?.weight ? `⚖️  Weight: ${data.weight} kg` : '',
+    mood: data?.mood ? `🧠 Mood: ${data.mood}` : '',
+    updatedAt: data?.updatedAt?.toDate?.()?.toLocaleString()
+      ? `🕒 Last updated: ${data.updatedAt.toDate().toLocaleString()}`
+      : '',
+  };
 
-  if (mood) {
-    console.log(`🧠 Mood: ${mood}`);
-  }
+  Object.values(simpleFields).forEach((line) => {
+    if (line) lines.push(line);
+  });
 
-  if (updatedAt) {
-    console.log(`🕒 Last updated: ${updatedAt}`);
-  }
-
-  if (reflection) {
-    console.log(`\n💬 Reflection:\n${reflection}`);
+  if (data?.reflection) {
+    lines.push(`\n💬 Reflection:\n${data.reflection}`);
   }
 
   if (meals.length === 0) {
-    console.log(`\nNo meals logged for ${date}`);
+    lines.push(`\nNo meals logged for ${date}`);
+    console.log(lines.join('\n'));
     process.exit(0);
   }
 
-  let total = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
-
-  console.log(`\n🍽️  Meals:\n`);
+  lines.push(`\n🍽️  Meals:\n`);
 
   meals.forEach((meal: Meal, i: number) => {
-    console.log(
-      `#${i + 1}: ${meal.name} – ${meal.kcal} kcal | P:${meal.protein} C:${meal.carbs} F:${meal.fat}${meal.fiber !== undefined ? ` FIB:${meal.fiber}` : ''}`
+    const fiberInfo = meal.fiber !== undefined ? ` FIB:${meal.fiber}` : '';
+    lines.push(
+      `#${i + 1}: ${meal.name} – ${meal.kcal} kcal | P:${meal.protein} C:${meal.carbs} F:${meal.fat}${fiberInfo}`
     );
 
     total.kcal += meal.kcal;
@@ -60,5 +58,9 @@ const ref = db.collection('days').doc(date);
     total.fiber += meal.fiber || 0;
   });
 
-  console.log(`\n📊 Total: ${total.kcal} kcal | P:${total.protein} C:${total.carbs} F:${total.fat} FIB:${total.fiber}`);
+  lines.push(
+    `\n📊 Total: ${total.kcal} kcal | P:${total.protein} C:${total.carbs} F:${total.fat} FIB:${total.fiber}`
+  );
+
+  console.log(lines.join('\n'));
 })();
