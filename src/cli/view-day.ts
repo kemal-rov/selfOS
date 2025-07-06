@@ -1,6 +1,6 @@
-import { db } from './core/firestore';
-import { parseArgs } from './utils/args';
-import { Meal } from './types';
+import { db } from '../core/firestore';
+import { parseArgs } from '../utils/args';
+import { Meal } from '../core/types';
 
 const { date } = parseArgs(process.argv.slice(2));
 const ref = db.collection('days').doc(date);
