@@ -61,15 +61,15 @@ export async function getDailySuggestion({
 }): Promise<string> {
   const prompt = `Based on the following data, write a short, personalized suggestion or reflection. Keep it practical, supportive, and very easy to read — as if you're talking to a friend. Use plain language, avoid fancy terms or abstract phrases, and limit it to 2-3 sentences. Don't repeat the numbers. Just share a useful tip, friendly insight, or quick motivation.
 
-Daily summary:
-- kcal: ${kcal}
-- protein: ${protein}
-- carbs: ${carbs}
-- fat: ${fat}
-${mood ? `- mood: ${mood}` : ''}
-${weight ? `- weight: ${weight} kg` : ''}
+  Daily summary:
+  - kcal: ${kcal}
+  - protein: ${protein}
+  - carbs: ${carbs}
+  - fat: ${fat}
+  ${mood ? `- mood: ${mood}` : ''}
+  ${weight ? `- weight: ${weight} kg` : ''}
 
-Reply only with the suggestion. No intro, no formatting.`;
+  Reply only with the suggestion. No intro, no formatting.`;
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',

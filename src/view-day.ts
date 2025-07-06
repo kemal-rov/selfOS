@@ -14,30 +14,39 @@ const ref = db.collection('days').doc(date);
   }
 
   const data = snapshot.data();
-  const weight = data?.weight;
-  const mood = data?.mood;
-  const updatedAt = data?.updatedAt?.toDate?.()?.toLocaleString() || null;
-
-  if (weight) {
-  console.log(`⚖️  Weight: ${weight} kg`);
-  }
-  if (mood) {
-  console.log(`🧠 Mood: ${mood}`);
-  }
-  if (updatedAt) {
-  console.log(`🕒 Last updated: ${updatedAt}`);
-  }
-  
   const meals = data?.meals || [];
 
+  const weight = data?.weight;
+  const mood = data?.mood;
+  const reflection = data?.reflection;
+  const updatedAt = data?.updatedAt?.toDate?.().toLocaleString() || null;
+
+  console.log(`🗓️  SelfOS log for ${date}\n`);
+
+  if (weight) {
+    console.log(`⚖️  Weight: ${weight} kg`);
+  }
+
+  if (mood) {
+    console.log(`🧠 Mood: ${mood}`);
+  }
+
+  if (updatedAt) {
+    console.log(`🕒 Last updated: ${updatedAt}`);
+  }
+
+  if (reflection) {
+    console.log(`\n💬 Reflection:\n${reflection}`);
+  }
+
   if (meals.length === 0) {
-    console.log(`No meals logged for ${date}`);
+    console.log(`\nNo meals logged for ${date}`);
     process.exit(0);
   }
 
   let total = { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 };
 
-  console.log(`🍽️  Meals for ${date}:\n`);
+  console.log(`\n🍽️  Meals:\n`);
 
   meals.forEach((meal: Meal, i: number) => {
     console.log(
