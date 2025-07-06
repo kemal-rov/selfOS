@@ -8,7 +8,6 @@
     "start": "npm run build && node dist/index.js",
     "dev": "nodemon src/index.ts",
     "clean": "rimraf ./dist",
-
     "log:meal": "ts-node src/cli/log-meal.ts",
     "log:mood": "ts-node src/cli/log-mood.ts",
     "log:weight": "ts-node src/cli/log-weight.ts",
@@ -16,7 +15,9 @@
     "summary": "ts-node src/cli/daily-summary.ts",
     "list:meals": "ts-node src/cli/list-meals.ts",
     "edit:meal": "ts-node src/cli/edit-meal.ts",
-    "remove:meal": "ts-node src/cli/remove-meal.ts"
+    "remove:meal": "ts-node src/cli/remove-meal.ts",
+    "bot": "ts-node src/bot/discord.ts",
+    "dev:bot": "nodemon --watch src/bot src/bot/discord.ts"
 
   },
   "repository": {
@@ -40,6 +41,7 @@
   },
   "dependencies": {
     "@google-cloud/firestore": "^7.11.2",
+    "discord.js": "^14.21.0",
     "dotenv": "^17.0.1",
     "google-auth-library": "^9.10.0",
     "openai": "^5.8.2"

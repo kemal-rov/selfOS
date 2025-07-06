@@ -49,3 +49,13 @@ jobs:
           else
             npm run summary
           fi
+      - name: Send Discord message
+        env:
+            DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+            curl -X POST -H "Content-Type: application/json" \
+            -d "{\"content\": \"✅ SelfOS summary completed for today!\"}" \
+            "$DISCORD_WEBHOOK_URL"
+
+            - name: Cleanup
+                run: rm -f .env
