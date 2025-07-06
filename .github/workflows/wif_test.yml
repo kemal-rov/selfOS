@@ -33,7 +33,3 @@ jobs:
 
       - name: Show current project
         run: gcloud config list project
-
-      - name: Dump OIDC token
-        run: |
-          echo "${{ steps.auth.outputs.id_token }}" | cut -d '.' -f2 | base64 -d | jq .
