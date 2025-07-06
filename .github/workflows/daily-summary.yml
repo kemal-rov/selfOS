@@ -57,5 +57,5 @@ jobs:
             -d "{\"content\": \"✅ SelfOS summary completed for today!\"}" \
             "$DISCORD_WEBHOOK_URL"
 
-            - name: Cleanup
-                run: rm -f .env
+      - name: Cleanup
+        run: rm -f .env
