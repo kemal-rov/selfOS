@@ -13,7 +13,11 @@
     "log:mood": "ts-node src/cli/log-mood.ts",
     "log:weight": "ts-node src/cli/log-weight.ts",
     "view:day": "ts-node src/cli/view-day.ts",
-    "summary": "ts-node src/cli/daily-summary.ts"
+    "summary": "ts-node src/cli/daily-summary.ts",
+    "list:meals": "ts-node src/cli/list-meals.ts",
+    "edit:meal": "ts-node src/cli/edit-meal.ts",
+    "remove:meal": "ts-node src/cli/remove-meal.ts"
+
   },
   "repository": {
     "type": "git",

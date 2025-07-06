@@ -1,15 +1,26 @@
+
 export interface ParsedArgs {
-  date: string;         // "2025-07-06"
-  input: string;        // "meal or mood or weight description"
+  date: string;
+  input: string;
+  flags: Map<string, string>;
 }
 
 export function parseArgs(argv: string[]): ParsedArgs {
   const dateArg = argv.find(arg => arg.startsWith('--date='));
-  const inputParts = argv.filter(arg => !arg.startsWith('--date='));
+  const date = dateArg?.split('=')[1] || getTodayDate();
+
+  const flags = new Map<string, string>();
+  for (const arg of argv) {
+    if (arg.startsWith('--') && !arg.startsWith('--date=')) {
+      const [key, value = 'true'] = arg.replace(/^--/, '').split('=');
+      flags.set(key, value);
+    }
+  }
+
+  const inputParts = argv.filter(arg => !arg.startsWith('--'));
   const input = inputParts.join(' ').trim();
 
-  const date = dateArg?.split('=')[1] || getTodayDate();
-  return { date, input };
+  return { date, input, flags };
 }
 
 function getTodayDate(): string {

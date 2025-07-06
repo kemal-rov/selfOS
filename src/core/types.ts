@@ -7,3 +7,16 @@ export interface Meal {
   fat: number;
   fiber?: number;
 }
+
+export interface Macros {
+  kcal: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  fiber?: number;
+}
+
+export interface DailySummaryInput extends Macros {
+  mood?: string;
+  weight?: number;
+}

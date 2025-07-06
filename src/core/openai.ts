@@ -1,18 +1,12 @@
 import { OpenAI } from 'openai';
+import { goals } from './goals';
+import { Macros, DailySummaryInput } from './types';
 import dotenv from 'dotenv';
 dotenv.config();
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-
-interface Macros {
-  kcal: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  fiber?: number;
-}
 
 export async function getMealMacrosFromGPT(mealText: string): Promise<Macros> {
   const prompt = `Estimate calories and macronutrients for the following meal:\n\n"${mealText}"\n\nReturn only valid JSON like this:\n{\n  "kcal": number,\n  "protein": number,\n  "carbs": number,\n  "fat": number,\n  "fiber": number (optional)\n}`;
@@ -24,8 +18,6 @@ export async function getMealMacrosFromGPT(mealText: string): Promise<Macros> {
   });
 
   let raw = res.choices[0].message.content ?? '{}';
-
-  // Strip markdown fences like ``` json or ```
   raw = raw.trim().replace(/^```(?:json)?/, '').replace(/```$/, '');
 
   try {
@@ -36,7 +28,6 @@ export async function getMealMacrosFromGPT(mealText: string): Promise<Macros> {
       carbs: Math.round(parsed.carbs),
       fat: Math.round(parsed.fat),
       ...(parsed.fiber !== undefined ? { fiber: parsed.fiber } : {})
-
     };
   } catch (e) {
     console.error(`❌ GPT response parse error:`, raw);
@@ -49,27 +40,28 @@ export async function getDailySuggestion({
   protein,
   carbs,
   fat,
+  fiber,
   mood,
   weight
-}: {
-  kcal: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  mood?: string;
-  weight?: number;
-}): Promise<string> {
-  const prompt = `Based on the following data, write a short, personalized suggestion or reflection. Keep it practical, supportive, and very easy to read — as if you're talking to a friend. Use plain language, avoid fancy terms or abstract phrases, and limit it to 2-3 sentences. Don't repeat the numbers. Just share a useful tip, friendly insight, or quick motivation.
+}: DailySummaryInput): Promise<string> {
+  const prompt = `Here is a daily nutrition and mood log. Based on the data and user goals, write a short, supportive suggestion. Keep it plain, friendly, and limited to 2–3 sentences. Don't repeat the numbers. Mention how well the user stuck to their goals or where they can gently improve.
 
-  Daily summary:
-  - kcal: ${kcal}
-  - protein: ${protein}
-  - carbs: ${carbs}
-  - fat: ${fat}
-  ${mood ? `- mood: ${mood}` : ''}
-  ${weight ? `- weight: ${weight} kg` : ''}
+User goals:
+- Stay under ${goals.kcalLimit} kcal
+${goals.highProtein ? '- Prioritize high protein intake\n' : ''}
+${goals.avoidSugar ? '- Minimize added sugar\n' : ''}
+${goals.avoidProcessed ? '- Avoid overly processed food\n' : ''}
 
-  Reply only with the suggestion. No intro, no formatting.`;
+Daily summary:
+- kcal: ${kcal}
+- protein: ${protein}
+- carbs: ${carbs}
+- fat: ${fat}
+${fiber !== undefined ? `- fiber: ${fiber}` : ''}
+${mood ? `- mood: ${mood}` : ''}
+${weight ? `- weight: ${weight} kg` : ''}
+
+Reply only with the short reflection, no intro or formatting.`;
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',
