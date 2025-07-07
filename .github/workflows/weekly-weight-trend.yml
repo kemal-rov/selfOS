@@ -1,0 +1,45 @@
+name: Weekly Weight Trend
+
+on:
+  schedule:
+    - cron: '0 10 * * 5'  # 12:00 CET = 10:00 UTC every Friday
+  workflow_dispatch:
+
+jobs:
+  run-weight-trend:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1021320164820/locations/global/workloadIdentityPools/selfos-pool/providers/github-provider'
+          service_account: 'github-actions-sa@selfos-test.iam.gserviceaccount.com'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Inject secrets
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
+          echo "DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}" >> .env
+
+      - name: Run weight trend script
+        run: npm run trend:weight
+
+      - name: Cleanup
+        run: rm -f .env
