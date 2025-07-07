@@ -1,5 +1,6 @@
 import { OpenAI } from 'openai';
 import { goals } from './goals';
+import { resolveRecipeAlias } from './recipes';
 import { Macros, DailySummaryInput } from './types';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -9,6 +10,13 @@ const openai = new OpenAI({
 });
 
 export async function getMealMacrosFromGPT(mealText: string): Promise<Macros> {
+  const local = resolveRecipeAlias(mealText);
+  
+  if (local) {
+    console.log(`✅ Resolved alias for "${mealText}"`);
+    return local;
+  }
+
   const prompt = `Estimate calories and macronutrients for the following meal:\n\n"${mealText}"\n\nReturn only valid JSON like this:\n{\n  "kcal": number,\n  "protein": number,\n  "carbs": number,\n  "fat": number,\n  "fiber": number (optional)\n}`;
 
   const res = await openai.chat.completions.create({

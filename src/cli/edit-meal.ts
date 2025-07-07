@@ -6,12 +6,15 @@ import { Timestamp } from '@google-cloud/firestore';
 import { randomUUID } from 'crypto';
 
 const { date, flags } = parseArgs(process.argv.slice(2));
-const indexStr = flags.get('index');
-const id = flags.get('id');
+const indexArg = flags.get('index');
+const idArg = flags.get('id');
 const newName = flags.get('name');
 
-if (!newName || (!indexStr && !id)) {
-  console.error('❌ Please provide a new --name and either --index or --id.');
+if (!newName || (!indexArg && !idArg)) {
+  console.error(`
+❌ Usage: npm run edit:meal -- --index=<number> --name="New meal name"
+   or:    npm run edit:meal -- --id=<mealId> --name="New meal name"
+`);
   process.exit(1);
 }
 
@@ -19,9 +22,8 @@ const ref = db.collection('days').doc(date);
 
 (async () => {
   const snapshot = await ref.get();
-
   if (!snapshot.exists) {
-    console.error(`No entry found for ${date}`);
+    console.error(`❌ No entry found for ${date}`);
     process.exit(1);
   }
 
@@ -30,22 +32,24 @@ const ref = db.collection('days').doc(date);
 
   let targetIndex = -1;
 
-  if (indexStr) {
-    const index = parseInt(indexStr, 10);
-    if (isNaN(index) || index < 0 || index >= meals.length) {
-      console.error(`❌ Invalid index: ${indexStr}`);
+  if (indexArg) {
+    const i = parseInt(indexArg, 10);
+    if (isNaN(i) || i < 0 || i >= meals.length) {
+      console.error(`❌ Invalid index: ${indexArg}`);
       process.exit(1);
     }
-    targetIndex = index;
-  } else if (id) {
-    targetIndex = meals.findIndex(m => m.id === id);
+    targetIndex = i;
+  } else if (idArg) {
+    targetIndex = meals.findIndex(m => m.id === idArg);
     if (targetIndex === -1) {
-      console.error(`❌ Meal with ID ${id} not found.`);
+      console.error(`❌ Meal with ID "${idArg}" not found.`);
       process.exit(1);
     }
   }
 
-  console.log(`🔄 Re-parsing macros for new meal: "${newName}"...`);
+  const oldMeal = meals[targetIndex];
+
+  console.log(`🔄 Recalculating macros for "${newName}"...`);
   const macros = await getMealMacrosFromGPT(newName);
 
   const updatedMeal: Meal = {
@@ -56,13 +60,9 @@ const ref = db.collection('days').doc(date);
 
   meals[targetIndex] = updatedMeal;
 
-  await ref.set(
-    {
-      meals,
-      updatedAt: Timestamp.now()
-    },
-    { merge: true }
-  );
+  await ref.set({ meals, updatedAt: Timestamp.now() }, { merge: true });
 
-  console.log(`✅ Meal updated successfully for ${date}.`);
+  console.log(`✅ Replaced meal #${targetIndex + 1} on ${date}:`);
+  console.log(`   • Old: ${oldMeal.name}`);
+  console.log(`   • New: ${updatedMeal.name} (${updatedMeal.kcal} kcal | P:${updatedMeal.protein} C:${updatedMeal.carbs} F:${updatedMeal.fat}${updatedMeal.fiber ? ` FIB:${updatedMeal.fiber}` : ''})`);
 })();
