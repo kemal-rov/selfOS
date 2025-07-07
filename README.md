@@ -58,7 +58,7 @@ src/
 
 ### ➕ Log a meal
 ```bash
-npm run meal -- "200g chicken, butter, broccoli and white rice"
+npm run meal "200g chicken, butter, broccoli and white rice"
 ```
 
 ### 👀 View your day
@@ -69,14 +69,14 @@ npm run view:day
 ### 🧠 Add mood or weight
 
 ```bash
-npm run log:mood -- "Feeling great after the run!"
-npm run log:weight -- 80.3
+npm run log:mood "Feeling great after the run!"
+npm run log:weight 80.3
 ```
 
 ### 💡 Get summary (w/ AI reflection)
 
 ```bash
-npm run summary -- --save
+npm run summary --save
 ```
 
 ---
@@ -135,8 +135,8 @@ To enable Discord interaction:
 
 ```bash
 npm install
-npm run log:meal -- "banana, oats, 20g whey protein"
-npm run summary -- --save
+npm run log:meal "banana, oats, 20g whey protein"
+npm run summary --save
 ```
 
 You're up and running.
@@ -146,10 +146,33 @@ You're up and running.
 ## 🤖 Discord integration
 
 SelfOS comes with a personal Discord bot that supports slash commands:
-    • /logmeal logs a meal (GPT-powered)
-    • Cron job posts your daily summary at 23:00 CET
+- /logmeal logs a meal (GPT-powered)
+- Cron job posts your daily summary at 23:00 CET
+- Also posts weekly weight trends on Fridays at 12:00 CET
 
 More commands to come.
+
+## 🛰️ GitHub Actions Automation
+
+SelfOS runs scheduled tasks via GitHub Actions:
+
+### 🗓️ **Daily Summary**
+
+Every evening at **23:00 CET**, it:
+- Aggregates meals, mood, and weight
+- Generates a GPT-powered reflection
+- Posts the summary to Discord
+*(Optional: saves it to Firestore with --save)*
+
+### 📉 **Weekly Weight Trend**
+
+Every Friday at **12:00 CET**, it:
+- Analyzes weight logs over time
+- Generates a reflection using GPT
+- Posts the trend summary to Discord
+`(Optional: logs it to Firestore with --save)`
+
+You can also trigger both manually via the Actions tab, and choose whether to save reflections.
 
 ## 🧱 Firestore structure
 
@@ -177,7 +200,7 @@ A daily document can include:
 - ✅ AI daily reflections
 - ✅ Firestore TTL-compatible storage
 - ✅ Discord integration
-- ✅ GitHub Actions summary runner
+- ✅ GitHub Actions summary runner, daily & weekly for weight
 - ⏳ Health Auto Export (Apple Health)
 - ⏳ Trend analysis and TUI dashboard
 
@@ -186,9 +209,9 @@ A daily document can include:
 ## 🧠 Why SelfOS?
 
 Because I wanted a system that was:
-    • 💡 Insightful, not overwhelming
-	• 🔒 Private and fully owned
-	• ✨ Actually fun to build and use
+- 💡 Insightful, not overwhelming
+- 🔒 Private and fully owned
+- ✨ Actually fun to build and use
 
 There’s no SaaS, no tracking, no noise — just a clean, focused wellness assistant that fits my life.
 
