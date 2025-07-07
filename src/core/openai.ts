@@ -71,3 +71,21 @@ Reply only with the short reflection, no intro or formatting.`;
 
   return res.choices[0].message.content?.trim() || '';
 }
+
+export async function getWeightReflection(entries: { date: string; weight: number }[]): Promise<string> {
+  const formatted = entries.map(e => `${e.date}: ${e.weight} kg`).join('\n');
+
+  const prompt = `Here is the user's recent weight log:
+
+${formatted}
+
+Write a short reflection (2–3 sentences) based on this data. Mention any trends (e.g., consistency, increases, drops), give gentle encouragement, and keep it friendly.`;
+
+  const res = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7
+  });
+
+  return res.choices[0].message.content?.trim() || '';
+}

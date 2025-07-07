@@ -2,6 +2,7 @@ import { db } from '../core/firestore';
 import { parseArgs } from '../utils/args';
 import { getDailySuggestion } from '../core/openai';
 import { Timestamp } from '@google-cloud/firestore';
+import { Meal } from '../core/types';
 
 const { date, flags } = parseArgs(process.argv.slice(2));
 const ref = db.collection('days').doc(date);
@@ -44,6 +45,15 @@ const ref = db.collection('days').doc(date);
   });
 
   console.log(`🗓️  Daily Summary for ${date}`);
+
+  console.log(`\n🍽️  Meals:\n`);
+
+  meals.forEach((meal: Meal, i: number) => {
+  console.log(
+      `#${i + 1}: ${meal.name} – ${meal.kcal} kcal | P:${meal.protein} C:${meal.carbs} F:${meal.fat}${meal.fiber !== undefined ? ` FIB:${meal.fiber}` : ''}`
+  );
+  });
+
   console.log(`📊 Totals: ${totals.kcal} kcal | P:${totals.protein} C:${totals.carbs} F:${totals.fat} FIB:${totals.fiber}`);
   if (mood) console.log(`🧠 Mood: ${mood}`);
   if (weight) console.log(`⚖️  Weight: ${weight} kg`);
