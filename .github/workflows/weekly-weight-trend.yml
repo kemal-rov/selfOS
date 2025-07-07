@@ -1,12 +1,17 @@
-name: Weekly Weight Trend
+name: SelfOS Weekly Weight Trend
 
 on:
   schedule:
-    - cron: '0 10 * * 5'  # 12:00 CET = 10:00 UTC every Friday
+    - cron: '0 10 * * 5'  # 12:00 CET every Friday (CET = UTC+2 in summer)
   workflow_dispatch:
+    inputs:
+      save:
+        description: 'Save reflection to Firestore?'
+        required: false
+        default: 'true'
 
 jobs:
-  run-weight-trend:
+  run-weekly-weight-trend:
     runs-on: ubuntu-latest
 
     permissions:
@@ -35,11 +40,33 @@ jobs:
 
       - name: Inject secrets
         run: |
-          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" >> .env
-          echo "DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}" >> .env
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
 
-      - name: Run weight trend script
-        run: npm run trend:weight
+      - name: Run weekly weight trend
+        id: trend
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] || [ "${{ github.event.inputs.save }}" = "true" ]; then
+            npm run trend:weight -- --save > trend_output.txt
+          else
+            npm run trend:weight > trend_output.txt
+          fi
+
+      - name: Post to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          echo "📤 Posting weight trend to Discord..."
+          MAX_LEN=1900
+          CONTENT=$(cat trend_output.txt)
+
+          if [ ${#CONTENT} -gt $MAX_LEN ]; then
+            CONTENT="${CONTENT:0:$MAX_LEN}..."
+          fi
+
+          PAYLOAD=$(jq -n --arg content "$CONTENT" '{content: $content}')
+          curl -X POST -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$DISCORD_WEBHOOK_URL"
 
       - name: Cleanup
-        run: rm -f .env
+        run: rm -f .env trend_output.txt
