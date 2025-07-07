@@ -1,6 +1,8 @@
 import { db } from '../core/firestore';
 import { parseArgs } from '../utils/args';
 import { getDailySuggestion } from '../core/openai';
+import { getWeightHistory } from '../core/queries';
+import { getWeeklyWeightAverages } from '../core/weight';
 import { Timestamp } from '@google-cloud/firestore';
 import { Meal } from '../core/types';
 
@@ -38,10 +40,14 @@ const ref = db.collection('days').doc(date);
   const mood = data?.mood;
   const weight = data?.weight;
 
+  const weightHistory = await getWeightHistory();
+  const weeklyAverages = getWeeklyWeightAverages(weightHistory);
+
   const suggestion = await getDailySuggestion({
     ...totals,
     mood,
-    weight
+    weight,
+    weeklyAverages
   });
 
   console.log(`🗓️  Daily Summary for ${date}`);
@@ -54,7 +60,12 @@ const ref = db.collection('days').doc(date);
   );
   });
 
-  console.log(`📊 Totals: ${totals.kcal} kcal | P:${totals.protein} C:${totals.carbs} F:${totals.fat} FIB:${totals.fiber}`);
+  console.log(`\n📊 Totals: ${totals.kcal} kcal | P:${totals.protein} C:${totals.carbs} F:${totals.fat} FIB:${totals.fiber}\n`);
+
+  if (weeklyAverages?.length) {
+    console.log(`📉 Recent weekly weight averages: ${weeklyAverages.join(', ')} kg`);
+  }
+
   if (mood) console.log(`🧠 Mood: ${mood}`);
   if (weight) console.log(`⚖️  Weight: ${weight} kg`);
   console.log(`\n💬 GPT Reflection:\n${suggestion}`);

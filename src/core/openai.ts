@@ -1,7 +1,9 @@
 import { OpenAI } from 'openai';
 import { goals } from './goals';
 import { resolveRecipeAlias } from './recipes';
-import { Macros, DailySummaryInput } from './types';
+import { getWeightHistory } from './queries';
+import { getWeeklyWeightAverages } from './weight';
+import { Macros, DailySummaryInput, Meal } from './types';
 import dotenv from 'dotenv';
 dotenv.config();
 
@@ -50,26 +52,36 @@ export async function getDailySuggestion({
   fat,
   fiber,
   mood,
-  weight
+  weight,
+  meals
 }: DailySummaryInput): Promise<string> {
-  const prompt = `Here is a daily nutrition and mood log. Based on the data and user goals, write a short, supportive suggestion. Keep it plain, friendly, and limited to 2–3 sentences. Don't repeat the numbers. Mention how well the user stuck to their goals or where they can gently improve.
+  const weightHistory = await getWeightHistory();
+  const weeklyAverages = getWeeklyWeightAverages(weightHistory);
+  const mealList = meals?.map((m, i) => `${i + 1}. ${m.name}`).join('\n');
 
-User goals:
-- Stay under ${goals.kcalLimit} kcal
-${goals.highProtein ? '- Prioritize high protein intake\n' : ''}
-${goals.avoidSugar ? '- Minimize added sugar\n' : ''}
-${goals.avoidProcessed ? '- Avoid overly processed food\n' : ''}
+  const prompt = `You're a supportive wellness assistant. Reflect on the user's daily health journey based on the data below and their long-term goals.
 
-Daily summary:
-- kcal: ${kcal}
-- protein: ${protein}
-- carbs: ${carbs}
-- fat: ${fat}
-${fiber !== undefined ? `- fiber: ${fiber}` : ''}
-${mood ? `- mood: ${mood}` : ''}
-${mood ? `- mood (user's personal log; use for emotional context, don't repeat): ${mood}` : ''}
+  Don't repeat exact numbers. The mood is the user's journal entry — use it for emotional understanding, not summarization.
 
-Reply only with the short reflection, no intro or formatting.`;
+  Keep the response warm, concise (2-3 sentences), and gently encouraging. Mention strengths, small wins, or areas for improvement.
+
+  User Goals:
+  - Stay under ${goals.kcalLimit} kcal
+  ${goals.goalWeight ? `- Goal weight: ${goals.goalWeight} kg\n` : ''}
+  ${goals.strengthFocus ? '- Build or maintain strength (fitness is a focus)\n' : ''}
+  ${goals.highProtein ? '- Prioritize high protein intake\n' : ''}
+  ${goals.avoidSugar ? '- Avoid added sugar\n' : ''}
+  ${goals.avoidProcessed ? '- Minimize processed foods\n' : ''}
+
+  Daily Summary:
+  
+  ${mealList ? `- meals today:\n${mealList}` : ''}
+
+  - kcal: ${kcal}, protein: ${protein}, carbs: ${carbs}, fat: ${fat}${fiber !== undefined ? `, fiber: ${fiber}` : ''}
+  ${weight ? `- weight: ${weight} kg` : ''}
+  ${weeklyAverages?.length ? `- recent weekly weight averages (most recent first): ${weeklyAverages.join(', ')} kg` : ''}
+  ${mood ? `- Mood journal: ${mood}` : ''}
+  `;
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -85,9 +97,9 @@ export async function getWeightReflection(entries: { date: string; weight: numbe
 
   const prompt = `Here is the user's recent weight log:
 
-${formatted}
+  ${formatted}
 
-Write a short reflection (2–3 sentences) based on this data. Mention any trends (e.g., consistency, increases, drops), give gentle encouragement, and keep it friendly.`;
+  Write a short reflection (2-3 sentences) based on this data. Mention any trends (e.g., consistency, increases, drops), give gentle encouragement, and keep it friendly.`;
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',

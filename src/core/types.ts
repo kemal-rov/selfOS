@@ -19,4 +19,6 @@ export interface Macros {
 export interface DailySummaryInput extends Macros {
   mood?: string;
   weight?: number;
+  weeklyAverages?: number[];
+  meals?: Meal[];
 }
