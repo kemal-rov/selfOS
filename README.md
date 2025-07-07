@@ -13,13 +13,13 @@ Built **for me, by me, with care**.
 
 SelfOS combines:
 
-- ✍️ **Natural input** — via CLI, Discord bot, or even ChatGPT (early days)
-- 🍽️ **Meal logging with GPT** — estimates kcal and macros based on plain text
-- 📊 **Structured Firestore storage** — daily records organized by date
-- 🤖 **AI reflections & summaries** — generated based on your mood, weight, and nutrition
-- ⚖️ **Mood and weight tracking** — with optional fields
-- 🧘‍♂️ **Health auto export support (WIP)** — integrate iOS Health / Apple Watch data
-- 🛰️ **Daily summaries via GitHub Actions** — scheduled to send insights to Discord
+- **Natural input** — via CLI, Discord bot, or even ChatGPT (early days)
+- **Meal logging with GPT** — estimates kcal and macros based on plain text
+- **Structured Firestore storage** — daily records organized by date
+- **AI reflections & summaries** — generated based on your mood, weight, and nutrition
+- **Mood and weight tracking** — with optional fields
+- **Health auto export support (WIP)** — integrate iOS Health / Apple Watch data
+- **Daily summaries via GitHub Actions** — scheduled to send insights to Discord
 
 This is a system that **learns with you**, keeps your data structured, and gives you **just enough feedback to stay on track** — without overwhelming dashboards or bloat.
 
@@ -56,24 +56,24 @@ src/
 
 ## 🧪 Example usage
 
-### ➕ Log a meal
+### Log a meal
 ```bash
 npm run meal "200g chicken, butter, broccoli and white rice"
 ```
 
-### 👀 View your day
+### View your day
 ```bash
 npm run view:day
 ```
 
-### 🧠 Add mood or weight
+### Add mood or weight
 
 ```bash
 npm run log:mood "Feeling great after the run!"
 npm run log:weight 80.3
 ```
 
-### 💡 Get summary (w/ AI reflection)
+### Get summary (w/ AI reflection)
 
 ```bash
 npm run summary --save
@@ -85,7 +85,7 @@ npm run summary --save
 
 If you'd like to fork or adapt **SelfOS** for your own use, here's what you'll need to configure:
 
-### 🔐 Secrets
+### Secrets
 
 Create a `.env` file in the root:
 
@@ -95,7 +95,7 @@ DISCORD_BOT_TOKEN=...
 DISCORD_WEBHOOK_URL=...
 ```
 
-### ☁️ Google Cloud (Firestore)
+### Google Cloud (Firestore)
 
 1.	Create a GCP project *(e.g. selfos-test)*
 2.	Enable Firestore in Native mode
@@ -117,12 +117,12 @@ DISCORD_WEBHOOK_URL=...
     service_account: 'github-actions-sa@…'
 ```
 
-### 🧠 OpenAI
+### OpenAI
 
 You’ll need an OpenAI account and API key with GPT-4o access.
 Usage is pay-as-you-go, and cost is very low for text-only calls.
 
-### 💬 Discord Bot (optional)
+### Discord Bot (optional)
 
 To enable Discord interaction:
 	1.	Create a Discord Developer App
@@ -156,7 +156,7 @@ More commands to come.
 
 SelfOS runs scheduled tasks via GitHub Actions:
 
-### 🗓️ **Daily Summary**
+### **Daily Summary**
 
 Every evening at **23:00 CET**, it:
 - Aggregates meals, mood, and weight
@@ -164,7 +164,7 @@ Every evening at **23:00 CET**, it:
 - Posts the summary to Discord
 *(Optional: saves it to Firestore with --save)*
 
-### 📉 **Weekly Weight Trend**
+### **Weekly Weight Trend**
 
 Every Friday at **12:00 CET**, it:
 - Analyzes weight logs over time
