@@ -11,7 +11,7 @@ const openai = new OpenAI({
 
 export async function getMealMacrosFromGPT(mealText: string): Promise<Macros> {
   const local = resolveRecipeAlias(mealText);
-  
+
   if (local) {
     console.log(`✅ Resolved alias for "${mealText}"`);
     return local;
@@ -67,7 +67,7 @@ Daily summary:
 - fat: ${fat}
 ${fiber !== undefined ? `- fiber: ${fiber}` : ''}
 ${mood ? `- mood: ${mood}` : ''}
-${weight ? `- weight: ${weight} kg` : ''}
+${mood ? `- mood (user's personal log; use for emotional context, don't repeat): ${mood}` : ''}
 
 Reply only with the short reflection, no intro or formatting.`;
 
