@@ -2,7 +2,8 @@ import { OpenAI } from 'openai';
 import { goals } from './goals';
 import { resolveRecipeAlias } from './recipes';
 import { getWeightHistory } from './queries';
-import { getWeeklyWeightAverages } from './weight';
+import { getWeeklyWeightAverages } from './weight'
+import { getReflectionTags } from './reflections';
 import { Macros, DailySummaryInput, Meal } from './types';
 import dotenv from 'dotenv';
 dotenv.config();
@@ -57,30 +58,34 @@ export async function getDailySuggestion({
 }: DailySummaryInput): Promise<string> {
   const weightHistory = await getWeightHistory();
   const weeklyAverages = getWeeklyWeightAverages(weightHistory);
-  const mealList = meals?.map((m, i) => `${i + 1}. ${m.name}`).join('\n');
+  const tags = getReflectionTags({
+  kcal,
+  protein,
+  meals,
+  mood
+});
 
-  const prompt = `You're a sports & nutrition assistant. Reflect on the user's daily health journey based on the data below and their long-term goals.
+  const prompt = `You're a smart and observant sports & nutrition assistant. Reflect on the user's daily health journey based on the data and long-term goals.
 
-  Don't repeat exact numbers. The mood is the user's journal entry — use it for emotional understanding, not summarization.
-
-  Keep the response useful, concise (2-3 sentences), and gently encouraging. Mention strengths, small wins, or areas for improvement.
+  Use the mood as insight into their motivation or fatigue.
+  Refer to patterns from the meals, weight trend, and macros — not just each in isolation.
+  Avoid vague praise. Be concrete and personalized. Avoid repeating advice from previous days.
 
   User Goals:
+  - Goal weight: ${goals.goalWeight} kg
   - Stay under ${goals.kcalLimit} kcal
-  ${goals.goalWeight ? `- Goal weight: ${goals.goalWeight} kg\n` : ''}
-  ${goals.strengthFocus ? '- Build or maintain strength (fitness is a focus)\n' : ''}
+  ${goals.strengthFocus ? '- Improve strength and muscle definition\n' : ''}
   ${goals.highProtein ? '- Prioritize high protein intake\n' : ''}
-  ${goals.avoidSugar ? '- Avoid added sugar\n' : ''}
-  ${goals.avoidProcessed ? '- Minimize processed foods\n' : ''}
+  ${goals.avoidSugar ? '- Minimize added sugar\n' : ''}
+  ${goals.avoidProcessed ? '- Avoid processed foods\n' : ''}
 
   Daily Summary:
-  
-  ${mealList ? `- meals today:\n${mealList}` : ''}
-
   - kcal: ${kcal}, protein: ${protein}, carbs: ${carbs}, fat: ${fat}${fiber !== undefined ? `, fiber: ${fiber}` : ''}
-  ${weight ? `- weight: ${weight} kg` : ''}
-  ${weeklyAverages?.length ? `- recent weekly weight averages (most recent first): ${weeklyAverages.join(', ')} kg` : ''}
-  ${mood ? `- Mood journal: ${mood}` : ''}
+  ${meals?.length ? `- Meals: ${meals.map(m => m.name).join(', ')}` : ''}
+  ${weight ? `- Weight: ${weight} kg` : ''}
+  ${weeklyAverages?.length ? `- Weekly weight averages: ${weeklyAverages.join(', ')} kg` : ''}
+  ${mood ? `- Mood: ${mood}` : ''}
+  ${tags.length ? `Heuristic Tags (for context): ${tags.join(', ')}` : ''}
   `;
 
   const res = await openai.chat.completions.create({
