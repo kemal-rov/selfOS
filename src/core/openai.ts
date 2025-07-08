@@ -69,7 +69,9 @@ export async function getDailySuggestion({
 
   Use the mood as insight into their motivation or fatigue.
   Refer to patterns from the meals, weight trend, and macros — not just each in isolation.
-  Avoid vague praise. Be concrete and personalized. Avoid repeating advice from previous days.
+  Avoid vague praise or generic advice. Be concrete and personalized. Avoid repeating advice from previous days.
+
+  Limit your response to exactly 2-3 short sentences. Be concise, precise, and practical.
 
   User Goals:
   - Goal weight: ${goals.goalWeight} kg
