@@ -14,6 +14,13 @@ export const recipes: Record<string, Macros> = {
     carbs: 42,
     fat: 9,
     fiber: 5
+  },
+  'lahmacun combo': {
+    kcal: 650,
+    protein: 53,
+    carbs: 37,
+    fat: 25,
+    fiber: 3
   }
 };
 
