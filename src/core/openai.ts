@@ -111,7 +111,7 @@ export async function getWeightReflection(entries: { date: string; weight: numbe
   ${goals.goalWeight ? `The user's goal weight is ${goals.goalWeight} kg.\n` : ''}
   ${goals.strengthFocus ? `They are also focused on building or maintaining strength.\n` : ''}
 
-  Avoid repeating exact numbers or quoting mood entries. Offer clear insight or motivation based on the trend.`;
+  Avoid repeating exact numbers. Offer clear insight or motivation based on the trend.`;
   
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',
