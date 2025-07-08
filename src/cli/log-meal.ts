@@ -51,21 +51,6 @@ if (!mealText) {
       },
       { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
     );
-
-    const mood = updatedData?.mood;
-    const weight = updatedData?.weight;
-
-    const suggestion = await getDailySuggestion({
-      kcal: totals.kcal,
-      protein: totals.protein,
-      carbs: totals.carbs,
-      fat: totals.fat,
-      mood,
-      weight
-    });
-
-    console.log('\n💬 Daily Suggestion:\n' + suggestion);
-
   } catch (err) {
     console.error('❌ Error logging meal:', err);
   }

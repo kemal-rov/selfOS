@@ -59,11 +59,11 @@ export async function getDailySuggestion({
   const weeklyAverages = getWeeklyWeightAverages(weightHistory);
   const mealList = meals?.map((m, i) => `${i + 1}. ${m.name}`).join('\n');
 
-  const prompt = `You're a supportive wellness assistant. Reflect on the user's daily health journey based on the data below and their long-term goals.
+  const prompt = `You're a sports & nutrition assistant. Reflect on the user's daily health journey based on the data below and their long-term goals.
 
   Don't repeat exact numbers. The mood is the user's journal entry — use it for emotional understanding, not summarization.
 
-  Keep the response warm, concise (2-3 sentences), and gently encouraging. Mention strengths, small wins, or areas for improvement.
+  Keep the response useful, concise (2-3 sentences), and gently encouraging. Mention strengths, small wins, or areas for improvement.
 
   User Goals:
   - Stay under ${goals.kcalLimit} kcal
@@ -95,12 +95,24 @@ export async function getDailySuggestion({
 export async function getWeightReflection(entries: { date: string; weight: number }[]): Promise<string> {
   const formatted = entries.map(e => `${e.date}: ${e.weight} kg`).join('\n');
 
-  const prompt = `Here is the user's recent weight log:
+  const prompt = `You're a sports & nutrition assistant reviewing the user's weight progress over time.
 
+  Here is their historical weight log:
   ${formatted}
 
-  Write a short reflection (2-3 sentences) based on this data. Mention any trends (e.g., consistency, increases, drops), give gentle encouragement, and keep it friendly.`;
+  Write a short, focused reflection (2-3 sentences) based on this data.
 
+  🎯 Focus on:
+  - Trends across time: e.g., steady decrease, stalls, or fluctuations
+  - Do take entire dataset in consideration, but also
+    put extra weight on the **last 4 weeks' data**
+  - Be encouraging but realistic — highlight consistency, effort, or setbacks in a constructive way
+
+  ${goals.goalWeight ? `The user's goal weight is ${goals.goalWeight} kg.\n` : ''}
+  ${goals.strengthFocus ? `They are also focused on building or maintaining strength.\n` : ''}
+
+  Avoid repeating exact numbers. Offer clear insight or motivation based on the trend.`;
+  
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],

@@ -40,24 +40,34 @@ const ref = db.collection('days').doc(date);
   const mood = data?.mood;
   const weight = data?.weight;
 
-  const weightHistory = await getWeightHistory();
-  const weeklyAverages = getWeeklyWeightAverages(weightHistory);
+  const today = new Date().toISOString().split('T')[0];
+  const shouldCallGPT = flags.has('save') || date === today;
 
-  const suggestion = await getDailySuggestion({
-    ...totals,
-    mood,
-    weight,
-    weeklyAverages
-  });
+  let suggestion = data?.reflection ?? '';
+  let weeklyAverages: number[] = [];
+
+  if (shouldCallGPT) {
+    const weightHistory = await getWeightHistory();
+    weeklyAverages = getWeeklyWeightAverages(weightHistory);
+
+    suggestion = await getDailySuggestion({
+      ...totals,
+      mood,
+      weight,
+      weeklyAverages,
+      meals
+    });
+  } else {
+    console.log(`📎 Skipping GPT call for ${date} — using cached reflection if present.`);
+  }
 
   console.log(`🗓️  Daily Summary for ${date}`);
 
   console.log(`\n🍽️  Meals:\n`);
-
   meals.forEach((meal: Meal, i: number) => {
-  console.log(
+    console.log(
       `#${i + 1}: ${meal.name} – ${meal.kcal} kcal | P:${meal.protein} C:${meal.carbs} F:${meal.fat}${meal.fiber !== undefined ? ` FIB:${meal.fiber}` : ''}`
-  );
+    );
   });
 
   console.log(`\n📊 Totals: ${totals.kcal} kcal | P:${totals.protein} C:${totals.carbs} F:${totals.fat} FIB:${totals.fiber}\n`);
