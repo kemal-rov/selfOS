@@ -4,5 +4,5 @@ export const goals = {
   strengthFocus: true,
   highProtein: true,
   avoidSugar: true,
-  avoidProcessed: true
+  limitJunkFood: true
 };

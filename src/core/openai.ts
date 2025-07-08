@@ -79,7 +79,7 @@ export async function getDailySuggestion({
   ${goals.strengthFocus ? '- Improve strength and muscle definition\n' : ''}
   ${goals.highProtein ? '- Prioritize high protein intake\n' : ''}
   ${goals.avoidSugar ? '- Minimize added sugar\n' : ''}
-  ${goals.avoidProcessed ? '- Avoid processed foods\n' : ''}
+  ${goals.limitJunkFood ? '- Limit empty-calorie snacks and highly processed fast foods\n' : ''}
 
   Daily Summary:
   - kcal: ${kcal}, protein: ${protein}, carbs: ${carbs}, fat: ${fat}${fiber !== undefined ? `, fiber: ${fiber}` : ''}
