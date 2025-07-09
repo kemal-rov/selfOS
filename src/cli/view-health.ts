@@ -4,41 +4,53 @@ import { parseArgs } from '../utils/args';
 const { date } = parseArgs(process.argv.slice(2));
 const ref = db.collection('healthData').doc(date);
 
-// --- Summary helpers ---
-function summarizeActiveEnergy(data: any[]): string {
-  const totalKJ = data.reduce((sum, entry) => sum + (entry.qty || 0), 0);
-  const kcal = totalKJ / 4.184;
-  return `${kcal.toFixed(1)} kcal`;
+// --- Metric Summarizers ---
+type Metric = {
+  name: string;
+  units?: string;
+  data: { qty: number }[];
+};
+
+function avg(data: any[]) {
+  return data.reduce((sum, e) => sum + (e.qty || 0), 0) / data.length;
 }
 
-function summarizeStepCount(data: any[]): string {
-  const totalSteps = data.reduce((sum, entry) => sum + (entry.qty || 0), 0);
-  return `${Math.round(totalSteps)} steps`;
+function sum(data: any[]) {
+  return data.reduce((sum, e) => sum + (e.qty || 0), 0);
 }
 
-function summarizeAudioExposure(data: any[]): string {
-  if (!data.length) return '0 dB';
-  const avg = data.reduce((sum, entry) => sum + (entry.qty || 0), 0) / data.length;
-  return `${avg.toFixed(1)} dB`;
-}
+const summarizers: Record<string, (data: any[]) => string> = {
+  active_energy: (data) => `${(sum(data) / 4.184).toFixed(1)} kcal`,
+  basal_energy_burned: (data) => `${(sum(data) / 4.184).toFixed(1)} kcal`,
+  step_count: (data) => `${Math.round(sum(data))} steps`,
+  flights_climbed: (data) => `${Math.round(sum(data))}`,
+  walking_speed: (data) => {
+    const speeds = data.map(d => d.qty).filter(v => typeof v === 'number');
+    const filtered = speeds.filter(v => v >= 0.5 && v <= 2.2);
+    const avg = (arr: number[]) => arr.reduce((a, b) => a + b, 0) / arr.length;
 
-function summarizeGeneric(data: any[]): string {
-  return `${data.length} entries`;
-}
+    return filtered.length
+      ? `${(avg(filtered) * 3.6).toFixed(1)} km/h`
+      : `⚠️ ${(avg(speeds) * 3.6).toFixed(1)} km/h (raw)`;
+  },
+  walking_step_length: (data) => `${avg(data).toFixed(1)} cm`,
+  headphone_audio_exposure: (data) => `${avg(data).toFixed(1)} dB`,
+};
 
-function summarizeHealthMetric(metric: any): string {
-  const { name, data } = metric;
-
-  switch (name) {
-    case 'active_energy':
-      return `• Active Energy: ${summarizeActiveEnergy(data)}`;
-    case 'headphone_audio_exposure':
-      return `• Headphone Audio Exposure: ${summarizeAudioExposure(data)}`;
-    case 'step_count':
-      return `• Step Count: ${summarizeStepCount(data)}`;
-    default:
-      return `• ${name}: ${summarizeGeneric(data)}`;
+// --- Formatter ---
+function summarizeMetric(metric: Metric): string {
+  const { name, units = 'unknown', data } = metric;
+  if (!Array.isArray(data) || data.length === 0) {
+    return `• ${name} (${units}): no data`;
   }
+
+  const toTitleCase = (str: string) =>
+    str.replace(/_/g, ' ').replace(/\w\S*/g, (txt) => txt[0].toUpperCase() + txt.slice(1));
+
+  const prettyName = toTitleCase(name);
+
+  const summarize = summarizers[name] || (() => `${data.length} entries`);
+  return `• ${prettyName}: ${summarize(data)}`;
 }
 
 // --- Main ---
@@ -54,16 +66,21 @@ function summarizeHealthMetric(metric: any): string {
   console.log(`🩺 Health Metrics for ${date}:\n`);
 
   const metrics = docData.data?.metrics;
-
   if (Array.isArray(metrics)) {
     for (const metric of metrics) {
-      console.log(summarizeHealthMetric(metric));
+      console.log(summarizeMetric(metric));
     }
   } else {
     console.log(`⚠️ No recognizable "metrics" array in data.`);
   }
 
-  if (docData.receivedAt?.toDate?.()) {
-    console.log(`\n🕒 Received at: ${docData.receivedAt.toDate().toLocaleString()}`);
+  const receivedAt = docData.receivedAt?.toDate?.();
+  if (receivedAt) {
+    console.log(`\n🕒 Received at: ${receivedAt.toLocaleString()}`);
+  }
+
+  if (Array.isArray(metrics)) {
+    const allMetricNames = [...new Set(metrics.map(m => m.name))];
+    console.log('📦 Available metric names:', allMetricNames);
   }
 })();
