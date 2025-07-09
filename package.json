@@ -12,6 +12,7 @@
     "log:mood": "ts-node src/cli/log-mood.ts",
     "log:weight": "ts-node src/cli/log-weight.ts",
     "view:day": "ts-node src/cli/view-day.ts",
+    "view:health": "ts-node src/cli/view-health.ts",
     "summary": "ts-node src/cli/daily-summary.ts",
     "trend:weight": "ts-node src/cli/weight-trend.ts",
     "list:meals": "ts-node src/cli/list-meals.ts",
