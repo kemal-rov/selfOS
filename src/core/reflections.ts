@@ -1,5 +1,7 @@
+import { db } from './firestore';
 import { Meal } from './types';
 import { goals } from './goals';
+import { FieldPath } from '@google-cloud/firestore';
 
 export function getReflectionTags({
   kcal,
@@ -39,4 +41,23 @@ export function getReflectionTags({
   }
 
   return tags;
+}
+
+export async function getLast7Reflections(): Promise<
+  { date: string; reflection: string; mood?: string }[]
+> {
+  const snapshot = await db.collection('days')
+    .orderBy(FieldPath.documentId(), 'desc')
+    .limit(7)
+    .select('reflection', 'mood')
+    .get();
+
+  return snapshot.docs
+    .filter(doc => doc.data()?.reflection)
+    .map(doc => ({
+      date: doc.id,
+      reflection: doc.data().reflection,
+      mood: doc.data().mood
+    }))
+    .reverse(); // oldest to newest
 }

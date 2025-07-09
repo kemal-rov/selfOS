@@ -83,7 +83,7 @@ export async function getDailySuggestion({
 
   Daily Summary:
   - kcal: ${kcal}, protein: ${protein}, carbs: ${carbs}, fat: ${fat}${fiber !== undefined ? `, fiber: ${fiber}` : ''}
-  ${meals?.length ? `- Meals: ${meals.map(m => m.name).join(', ')}` : ''}
+  ${meals?.length ? `- Meals: ${meals.map(m => `${m.name}${m.name === 'dark matter brownie' ? ' (homemade protein-rich healthy dessert)' : ''}`).join(', ')}` : ''}
   ${weight ? `- Weight: ${weight} kg` : ''}
   ${weeklyAverages?.length ? `- Weekly weight averages: ${weeklyAverages.join(', ')} kg` : ''}
   ${mood ? `- Mood: ${mood}` : ''}
@@ -102,7 +102,7 @@ export async function getDailySuggestion({
 export async function getWeightReflection(entries: { date: string; weight: number }[]): Promise<string> {
   const formatted = entries.map(e => `${e.date}: ${e.weight} kg`).join('\n');
 
-  const prompt = `You're a sports & nutrition assistant reviewing the user's weight progress over time.
+  const prompt = `You're a smart and observant sports & nutrition assistant reviewing the user's weight progress over time.
 
   Here is their historical weight log:
   ${formatted}
@@ -120,6 +120,59 @@ export async function getWeightReflection(entries: { date: string; weight: numbe
 
   Avoid repeating exact numbers. Offer clear insight or motivation based on the trend.`;
   
+  const res = await openai.chat.completions.create({
+    model: 'gpt-4o',
+    messages: [{ role: 'user', content: prompt }],
+    temperature: 0.7
+  });
+
+  return res.choices[0].message.content?.trim() || '';
+}
+
+export async function getWeeklyReflectionSummary({
+  reflections,
+  dailyKcal,
+  weeklyWeightAverages
+}: {
+  reflections: { date: string; reflection: string }[];
+  dailyKcal?: Record<string, number>;
+  weeklyWeightAverages?: number[];
+}): Promise<string> {
+  const formattedReflections = reflections
+    .map(r => `📅 ${r.date}: ${r.reflection}`)
+    .join('\n\n');
+
+  const formattedKcal =
+    dailyKcal && Object.keys(dailyKcal).length
+      ? Object.entries(dailyKcal)
+          .map(([date, kcal]) => `📅 ${date}: ${kcal} kcal`)
+          .join('\n')
+      : null;
+
+  const formattedWeights =
+    weeklyWeightAverages && weeklyWeightAverages.length
+      ? weeklyWeightAverages.join(', ') + ' kg'
+      : null;
+
+  const prompt = `You're a smart and observant sports & nutrition assistant. Write a concise weekly reflection (about 4 sentences) based on the user's last 7 days.
+
+  Use the following inputs:
+  - Daily GPT-generated reflections (based on food, macros, weight, and goals)
+  - The user's mood logs (journal-style)
+  - Any recurring trends, motivational shifts, or struggles
+
+  Incorporate calorie intake and weight averages if relevant, but focus on insight over numbers. Look for consistency, intent, setbacks, or emotional cues.
+
+  Avoid vague praise — be specific, helpful, and gently constructive. Mention key insights without repeating previous advice.
+
+  ${formattedKcal ? `\n📊 Daily Calories:\n${formattedKcal}` : ''}
+  ${formattedWeights ? `\n⚖️ Weekly Weight Averages: ${formattedWeights}` : ''}
+
+  🧠 Daily Reflections:
+  ${formattedReflections}
+
+  Reply only with the weekly summary — no intro, no title, no extra formatting.`;
+
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',
     messages: [{ role: 'user', content: prompt }],

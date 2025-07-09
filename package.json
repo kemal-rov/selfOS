@@ -17,6 +17,7 @@
     "list:meals": "ts-node src/cli/list-meals.ts",
     "edit:meal": "ts-node src/cli/edit-meal.ts",
     "remove:meal": "ts-node src/cli/remove-meal.ts",
+    "weekly:reflection": "ts-node src/cli/weekly-reflection.ts",
     "bot": "ts-node src/bot/discord.ts",
     "dev:bot": "nodemon --watch src/bot src/bot/discord.ts"
   },

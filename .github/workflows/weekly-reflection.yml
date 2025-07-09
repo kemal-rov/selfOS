@@ -1,0 +1,63 @@
+name: Weekly Reflection Summary
+
+on:
+  schedule:
+    - cron: '0 17 * * 0' # Sunday 19:00 CET (17:00 UTC)
+  workflow_dispatch:
+
+jobs:
+  post-weekly-reflection:
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          token_format: 'access_token'
+          workload_identity_provider: 'projects/1021320164820/locations/global/workloadIdentityPools/selfos-pool/providers/github-provider'
+          service_account: 'github-actions-sa@selfos-test.iam.gserviceaccount.com'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Inject secrets
+        run: |
+          echo "OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}" > .env
+
+      - name: Generate weekly reflection
+        run: |
+          npm run weekly:reflection > weekly_output.txt
+
+      - name: Post to Discord
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          echo "📤 Posting weekly reflection summary to Discord..."
+          MAX_LEN=1900
+          CONTENT=$(cat weekly_output.txt)
+
+          # Truncate if needed
+          if [ ${#CONTENT} -gt $MAX_LEN ]; then
+            CONTENT="${CONTENT:0:$MAX_LEN}..."
+          fi
+
+          PAYLOAD=$(jq -n --arg content "$CONTENT" '{content: $content}')
+          curl -X POST -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$DISCORD_WEBHOOK_URL"
+
+      - name: Cleanup
+        run: rm -f .env weekly_output.txt
