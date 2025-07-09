@@ -14,6 +14,7 @@ export interface Macros {
   carbs: number;
   fat: number;
   fiber?: number;
+  sugar?: number;
 }
 
 export interface DailySummaryInput extends Macros {

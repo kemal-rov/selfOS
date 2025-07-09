@@ -6,14 +6,16 @@ export const recipes: Record<string, Macros> = {
     protein: 7.4,
     fat: 5.9,
     carbs: 4.9,
-    fiber: 2
+    fiber: 2,
+    sugar: 0.6
   },
   'yogurt combo': {
     kcal: 345,
     protein: 25,
     carbs: 42,
     fat: 9,
-    fiber: 5
+    fiber: 5,
+    sugar: 23.3
   },
   'lahmacun combo': {
     kcal: 660,
@@ -45,6 +47,7 @@ export function resolveRecipeAlias(input: string): Macros | null {
     protein: Math.round(base.protein * multiplier),
     carbs: Math.round(base.carbs * multiplier),
     fat: Math.round(base.fat * multiplier),
-    fiber: base.fiber ? Math.round(base.fiber * multiplier) : 0
+    fiber: base.fiber ? Math.round(base.fiber * multiplier) : 0,
+    sugar: base.sugar ? Math.round(base.sugar * multiplier) : 0
   };
 }

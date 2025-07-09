@@ -32,6 +32,7 @@ const ref = db.collection('days').doc(date);
       acc.carbs += meal.carbs;
       acc.fat += meal.fat;
       acc.fiber += meal.fiber || 0;
+      acc.sugar += meal.sugar || 0;
       return acc;
     },
     { kcal: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
@@ -70,7 +71,7 @@ const ref = db.collection('days').doc(date);
     );
   });
 
-  console.log(`\n📊 Totals: ${totals.kcal} kcal | P:${totals.protein} C:${totals.carbs} F:${totals.fat} FIB:${totals.fiber}\n`);
+  console.log(`\n📊 Totals: ${totals.kcal} kcal | P:${totals.protein} C:${totals.carbs} F:${totals.fat} FIB:${totals.fiber} SUG:${totals.sugar}\n`);
 
   if (weeklyAverages?.length) {
     console.log(`📉 Recent weekly weight averages: ${weeklyAverages.join(', ')} kg`);

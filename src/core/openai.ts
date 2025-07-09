@@ -20,7 +20,7 @@ export async function getMealMacrosFromGPT(mealText: string): Promise<Macros> {
     return local;
   }
 
-  const prompt = `Estimate calories and macronutrients for the following meal:\n\n"${mealText}"\n\nReturn only valid JSON like this:\n{\n  "kcal": number,\n  "protein": number,\n  "carbs": number,\n  "fat": number,\n  "fiber": number (optional)\n}`;
+  const prompt = `Estimate calories and macronutrients for the following meal:\n\n"${mealText}"\n\nReturn only valid JSON like this:\n{\n  "kcal": number,\n  "protein": number,\n  "carbs": number,\n  "fat": number,\n  "fiber": number (optional),\n  "sugar": number (optional)\n}}`;
 
   const res = await openai.chat.completions.create({
     model: 'gpt-4o',
@@ -38,7 +38,8 @@ export async function getMealMacrosFromGPT(mealText: string): Promise<Macros> {
       protein: Math.round(parsed.protein),
       carbs: Math.round(parsed.carbs),
       fat: Math.round(parsed.fat),
-      ...(parsed.fiber !== undefined ? { fiber: parsed.fiber } : {})
+      ...(parsed.fiber !== undefined ? { fiber: parsed.fiber } : {}),
+      ...(parsed.sugar !== undefined ? { sugar: parsed.sugar } : {})
     };
   } catch (e) {
     console.error(`❌ GPT response parse error:`, raw);
@@ -52,6 +53,7 @@ export async function getDailySuggestion({
   carbs,
   fat,
   fiber,
+  sugar,
   mood,
   weight,
   meals
@@ -80,9 +82,10 @@ export async function getDailySuggestion({
   ${goals.highProtein ? '- Prioritize high protein intake\n' : ''}
   ${goals.avoidSugar ? '- Minimize added sugar\n' : ''}
   ${goals.limitJunkFood ? '- Limit empty-calorie snacks and highly processed fast foods\n' : ''}
+  ${goals.avoidSugar ? '- Minimize added sugar intake\n' : ''}
 
   Daily Summary:
-  - kcal: ${kcal}, protein: ${protein}, carbs: ${carbs}, fat: ${fat}${fiber !== undefined ? `, fiber: ${fiber}` : ''}
+  - kcal: ${kcal}, protein: ${protein}, carbs: ${carbs}, fat: ${fat}, ${fiber !== undefined ? `, sugar: ${sugar}` : ''}, ${sugar !== undefined ? `, sugar: ${sugar}` : ''}
   ${meals?.length ? `- Meals: ${meals.map(m => `${m.name}${m.name === 'dark matter brownie' ? ' (homemade protein-rich healthy dessert)' : ''}`).join(', ')}` : ''}
   ${weight ? `- Weight: ${weight} kg` : ''}
   ${weeklyAverages?.length ? `- Weekly weight averages: ${weeklyAverages.join(', ')} kg` : ''}
