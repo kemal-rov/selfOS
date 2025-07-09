@@ -23,11 +23,6 @@ import { getWeeklyReflectionSummary } from '../core/openai';
     weeklyWeightAverages: weeklyAverages
   });
 
-  console.log('🧠 Last 7 Reflections:\n');
-  reflections.forEach(({ date, reflection }) => {
-    console.log(`📅 ${date}:\n${reflection}\n`);
-  });
-
   console.log('📈 Weekly Summary:\n');
   console.log(summary);
 })();
