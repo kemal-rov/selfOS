@@ -10,12 +10,12 @@ export const recipes: Record<string, Macros> = {
     sugar: 0.6
   },
   'yogurt combo': {
-    kcal: 345,
-    protein: 25,
-    carbs: 42,
-    fat: 9,
-    fiber: 5,
-    sugar: 23.3
+    kcal: 430,
+    protein: 26,
+    carbs: 35.8,
+    fat: 18.7,
+    fiber: 7.5,
+    sugar: 20
   },
   'lahmacun combo': {
     kcal: 660,
