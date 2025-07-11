@@ -23,7 +23,15 @@ export const recipes: Record<string, Macros> = {
     carbs: 38,
     fat: 26,
     fiber: 3
-  }
+  },
+  'zalm brood combo': {
+    kcal: 465,
+    protein: 40,
+    carbs: 11.5,
+    fat: 30,
+    fiber: 2,
+    sugar: 2
+  },
 };
 
 export function resolveRecipeAlias(input: string): Macros | null {

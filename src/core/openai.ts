@@ -67,6 +67,9 @@ export async function getDailySuggestion({
   mood
 });
 
+  const now = new Date();
+  const currentTime = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+
   const prompt = `You're a smart and observant sports & nutrition assistant. Reflect on the user's daily health journey based on the data and long-term goals.
 
   Use the mood as insight into their motivation or fatigue.
@@ -91,6 +94,8 @@ export async function getDailySuggestion({
   ${weeklyAverages?.length ? `- Weekly weight averages: ${weeklyAverages.join(', ')} kg` : ''}
   ${mood ? `- Mood: ${mood}` : ''}
   ${tags.length ? `Heuristic Tags (for context): ${tags.join(', ')}` : ''}
+
+  Generated at: ${currentTime} - reflect based on time of day as well.
   `;
 
   const res = await openai.chat.completions.create({

@@ -35,6 +35,26 @@ const summarizers: Record<string, (data: any[]) => string> = {
   },
   walking_step_length: (data) => `${avg(data).toFixed(1)} cm`,
   headphone_audio_exposure: (data) => `${avg(data).toFixed(1)} dB`,
+  blood_oxygen_saturation: (data) => `${avg(data).toFixed(1)}%`,
+  heart_rate: (data) => {
+    const avgValues = data
+      .map(d => d.Avg)
+      .filter(v => typeof v === 'number');
+
+    const avg = avgValues.reduce((a, b) => a + b, 0) / avgValues.length;
+
+    return avgValues.length
+      ? `${Math.round(avg)} bpm`
+      : `⚠️ 0 bpm (missing?)`;
+  },
+  resting_heart_rate: (data) => `${avg(data).toFixed(0)} bpm`,
+  heart_rate_variability: (data) => `${avg(data).toFixed(1)} ms`,
+  respiratory_rate: (data) => `${avg(data).toFixed(1)} bpm`,
+  environmental_audio_exposure: (data) => `${avg(data).toFixed(1)} dB`,
+  weight_body_mass: (data) => `${avg(data).toFixed(1)} kg`,
+  time_in_daylight: (data) => `${Math.round(sum(data) / 60)} min`,
+  apple_exercise_time: (data) => `${Math.round(sum(data) / 60)} min`,
+  apple_stand_time: (data) => `${Math.round(sum(data) / 60)} min`,
 };
 
 // --- Formatter ---
@@ -69,6 +89,13 @@ function summarizeMetric(metric: Metric): string {
   if (Array.isArray(metrics)) {
     for (const metric of metrics) {
       console.log(summarizeMetric(metric));
+
+      // Optional: log sample entries for suspicious or flaky metrics
+      const suspicious = ['heart_rate', 'walking_speed'];
+      if (suspicious.includes(metric.name)) {
+        const sample = metric.data?.slice(0, 2) || [];
+        console.log(`🔍 Sample for ${metric.name}:`, JSON.stringify(sample, null, 2));
+      }
     }
   } else {
     console.log(`⚠️ No recognizable "metrics" array in data.`);
