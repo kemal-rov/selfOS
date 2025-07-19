@@ -1,5 +1,7 @@
 import { db } from '../core/firestore';
 import { parseArgs } from '../utils/args';
+import { formatSleepEntry } from '../core/formatters';
+  import { METRIC_CATEGORIES } from '../core/metrics'; 
 
 const { date } = parseArgs(process.argv.slice(2));
 const ref = db.collection('healthData').doc(date);
@@ -10,14 +12,12 @@ type Metric = {
   data: { qty?: number; [key: string]: any }[];
 };
 
-// --- Metric summarizers ---
 function avg(data: any[]) {
   return data.reduce((sum, e) => sum + (e.qty || 0), 0) / data.length;
 }
 function sum(data: any[]) {
   return data.reduce((sum, e) => sum + (e.qty || 0), 0);
 }
-
 function safe(val: any, fallback = '?') {
   return val !== undefined && val !== null ? val : fallback;
 }
@@ -39,7 +39,7 @@ const summarizers: Record<string, (data: any[]) => string> = {
   apple_exercise_time: (data) => `${Math.round(sum(data) / 60)} min`,
   apple_stand_time: (data) => `${Math.round(sum(data) / 60)} min`,
   apple_stand_hour: (data) => {
-    const hours = new Set(data.map(d => d.date?.slice(0, 13))); // hour precision
+    const hours = new Set(data.map(d => d.date?.slice(0, 13)));
     return `${hours.size} active stand hours`;
   },
   walking_running_distance: (data) => `${(sum(data) / 1000).toFixed(2)} km`,
@@ -65,6 +65,10 @@ const summarizers: Record<string, (data: any[]) => string> = {
   weight_body_mass: (data) => `${avg(data).toFixed(1)} kg`,
   breathing_disturbances: (data) => `${data.length} entries`,
   physical_effort: (data) => `Avg effort: ${avg(data).toFixed(1)}`,
+  sleep_analysis: (data) => {
+    if (!data.length) return '';
+    return data.map(formatSleepEntry).join('\n');
+  }
 };
 
 function summarizeMetric(metric: Metric): string {
@@ -73,10 +77,14 @@ function summarizeMetric(metric: Metric): string {
     str.replace(/_/g, ' ').replace(/\w\S*/g, (txt) => txt[0].toUpperCase() + txt.slice(1));
   const prettyName = toTitleCase(name);
   const summarize = summarizers[name] || (() => `${data.length} entries`);
-  return `• ${prettyName}: ${summarize(data)}`;
+  const summary = summarize(data);
+  if (!summary) return '';
+  if (summary.includes('\n')) {
+    return `• ${prettyName}:\n${summary}`;
+  }
+  return `• ${prettyName}: ${summary}`;
 }
 
-// --- Main ---
 (async () => {
   const snapshot = await ref.get();
   if (!snapshot.exists) {
@@ -85,9 +93,9 @@ function summarizeMetric(metric: Metric): string {
   }
 
   const docData = snapshot.data() || {};
-  console.log(`🩺 Health Metrics for ${date}:\n`);
+  console.log(`🩺 Health Metrics for ${date}:
+`);
 
-  // === METRICS ===
   const metricSnapshot = await ref.collection('metrics').get();
   const metrics = metricSnapshot.docs.map(doc => ({
     name: doc.id,
@@ -95,7 +103,6 @@ function summarizeMetric(metric: Metric): string {
     data: Array.isArray(doc.data().data) ? doc.data().data : [],
   }));
 
-  // Support fallback flat structure (if any) from docData.metrics
   const allMetricNames = new Set([
     ...metrics.map(m => m.name),
     ...Object.keys(docData.metrics || {}),
@@ -112,28 +119,36 @@ function summarizeMetric(metric: Metric): string {
 
   const metricsToLog: Metric[] = [...metrics, ...fallbackMetrics];
 
+  const grouped: Record<string, Metric[]> = {};
   for (const metric of metricsToLog) {
-    console.log(summarizeMetric(metric));
+    const category = METRIC_CATEGORIES[metric.name] || 'Other';
+    if (!grouped[category]) grouped[category] = [];
+    grouped[category].push(metric);
   }
 
-  // === ECG ===
-  const ecgSnap = await ref.collection('ecg').get();
-  const ecgEntries: any[] = [];
-  for (const doc of ecgSnap.docs) {
-    ecgEntries.push(doc.data());
+  const CATEGORY_ORDER = ['Sleep', 'Vitals', 'Energy', 'Activity', 'Cognitive', 'Body', 'Audio', 'Other'];
+
+  for (const category of CATEGORY_ORDER) {
+    if (!grouped[category]) continue;
+    console.log(`\n📂 ${category}:`);
+    for (const metric of grouped[category]) {
+      console.log(summarizeMetric(metric));
+    }
   }
+
+  const ecgSnap = await ref.collection('ecg').get();
+  const ecgEntries: any[] = ecgSnap.docs.map(doc => doc.data());
 
   if (ecgEntries.length) {
     console.log(`\n🫀 ECG: ${ecgEntries.length} entr${ecgEntries.length === 1 ? 'y' : 'ies'}`);
     for (const entry of ecgEntries) {
       const { averageHeartRate, classification, start, end, samplingFrequency, numberOfVoltageMeasurements } = entry;
       console.log(
-      `• ${safe(classification, 'Unknown')} rhythm — ${safe(averageHeartRate)} bpm — ${safe(samplingFrequency)} Hz — ${safe(numberOfVoltageMeasurements)} pts — ${safe(start)} → ${safe(end)}`
-    );
+        `• ${safe(classification, 'Unknown')} rhythm — ${safe(averageHeartRate)} bpm — ${safe(samplingFrequency)} Hz — ${safe(numberOfVoltageMeasurements)} pts — ${safe(start)} → ${safe(end)}`
+      );
     }
   }
 
-  // === WORKOUTS ===
   const workoutsSnap = await ref.collection('workouts').get();
   const workoutDocs = workoutsSnap.docs.map(doc => doc.data());
 
@@ -152,7 +167,6 @@ function summarizeMetric(metric: Metric): string {
     console.log(`🔥 Total Active Energy: ${energyTotal.toFixed(1)} kcal`);
   }
 
-  // === RECEIVED AT ===
   const receivedAt = docData.receivedAt?.toDate?.();
   if (receivedAt) {
     console.log(`\n🕒 Received at: ${receivedAt.toLocaleString()}`);
